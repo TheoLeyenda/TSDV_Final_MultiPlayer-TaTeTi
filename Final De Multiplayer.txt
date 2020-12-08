@@ -1,0 +1,9 @@
+-Hacer un ta te ti online con lo que yo vea mas conveniente.
+-El ta te ti debe cumplir con las mismas consignas dadas en el primer parcial
+(PFD abajo del bloc de notas).
+
+* Puedo utilizar:
+-Photom
+-Mirror
+-UNet
+basicamente lo puedo hacer con lo que quiera.
