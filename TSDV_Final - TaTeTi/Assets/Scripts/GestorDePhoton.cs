@@ -8,6 +8,7 @@ using System;
 public class GestorDePhoton : MonoBehaviourPunCallbacks
 {
     public string NamePlayer;
+    private LogicaJugador myPlayer;
     public GameObject Camvas;
     public Button CicruloButton;
     public Button EquisButton;
@@ -15,6 +16,7 @@ public class GestorDePhoton : MonoBehaviourPunCallbacks
 
 
     public static GestorDePhoton instanceGestorDePhoton;
+
     void Awake()
     {
         if (instanceGestorDePhoton == null)
@@ -54,6 +56,7 @@ public class GestorDePhoton : MonoBehaviourPunCallbacks
         //instancia al jugador buscando el archivo "jugador" en la carpeta de resource
         GameObject go = PhotonNetwork.Instantiate(NamePlayer, transform.position, Quaternion.identity);
         LogicaJugador logicaJugador = go.GetComponent<LogicaJugador>();
+        myPlayer = logicaJugador;
         CicruloButton.onClick.AddListener(logicaJugador.SeleccionarFichaO);
         EquisButton.onClick.AddListener(logicaJugador.SeleccionarFichaX);
         Camvas.SetActive(true);

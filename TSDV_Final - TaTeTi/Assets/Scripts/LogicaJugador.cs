@@ -1,14 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
+using Photon.Pun;
 public class LogicaJugador : MonoBehaviour
 {
 
     public GameObject fichaX;
     public GameObject fichaO;
     public GameObject miFicha { set; get; }
-    public GameObject suFicha { set; get; }
 
     public Ficha ficha { set; get; }
 
@@ -39,25 +39,65 @@ public class LogicaJugador : MonoBehaviour
                 if (slot.ocupado)
                     return;
 
-                slot.fichaSlot = Instantiate(ficha.MyGameObject, slot.transform).GetComponent<Ficha>();
-                slot.ocupado = true;
 
+                slot.fichaSlot = PhotonNetwork.Instantiate("Ficha", slot.transform.position, Quaternion.identity).GetComponent<Ficha>();
+                slot.fichaSlot.myPlayer = this;
+                slot.ocupado = true;
 
             }
         }
     }
-
+    private void OnEnable()
+    {
+        Ficha.OnAlive += SettingDataFicha;
+    }
+    private void OnDisable()
+    {
+        Ficha.OnAlive -= SettingDataFicha;
+    }
+    public void SettingDataFicha(Ficha ficha)
+    {
+        
+        if (ficha.myPlayer != this)
+        {
+            if (miFicha == fichaO)
+            {
+                Debug.Log("HOLA PUTA");
+                ficha.meshRenderer.material = ficha.matTeamX;
+                ficha.teamFicha = Ficha.TeamFicha.X;
+            }
+            else if (miFicha == fichaX)
+            {
+                Debug.Log("HOLA PUTA");
+                ficha.meshRenderer.material = ficha.matTeamO;
+                ficha.teamFicha = Ficha.TeamFicha.O;
+            }
+        }
+        else if (ficha.myPlayer == this)
+        {
+            if (miFicha == fichaO)
+            {
+                Debug.Log("HOLA PUTA");
+                ficha.meshRenderer.material = ficha.matTeamO;
+                ficha.teamFicha = Ficha.TeamFicha.O;
+            }
+            else if (miFicha == fichaX)
+            {
+                Debug.Log("HOLA PUTA");
+                ficha.meshRenderer.material = ficha.matTeamX;
+                ficha.teamFicha = Ficha.TeamFicha.X;
+            }
+        }
+    }
     public void SeleccionarFichaX()
     {
         miFicha = fichaX;
-        suFicha = fichaO;
         ficha.MyGameObject = miFicha;
         ficha.teamFicha = Ficha.TeamFicha.X;
     }
     public void SeleccionarFichaO()
     {
         miFicha = fichaO;
-        suFicha = fichaX;
         ficha.MyGameObject = miFicha;
         ficha.teamFicha = Ficha.TeamFicha.O;
     }
