@@ -12,15 +12,20 @@ public class LogicaJugador : MonoBehaviour
 
     public Ficha ficha { set; get; }
 
+    private bool isMyTurn = true;
+
+    private DataPlayer dataPlayer;
+
     void Start()
     {
         ficha = new Ficha();
+        dataPlayer = GetComponent<DataPlayer>();
     }
     void Update()
     {
         if (miFicha == null)
             return;
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && isMyTurn)
         {
             RaycastHit hit;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -62,13 +67,13 @@ public class LogicaJugador : MonoBehaviour
         {
             if (miFicha == fichaO)
             {
-                Debug.Log("HOLA PUTA");
+                //Debug.Log("HOLA PUTA");
                 ficha.meshRenderer.material = ficha.matTeamX;
                 ficha.teamFicha = Ficha.TeamFicha.X;
             }
             else if (miFicha == fichaX)
             {
-                Debug.Log("HOLA PUTA");
+                //Debug.Log("HOLA PUTA");
                 ficha.meshRenderer.material = ficha.matTeamO;
                 ficha.teamFicha = Ficha.TeamFicha.O;
             }
@@ -77,13 +82,13 @@ public class LogicaJugador : MonoBehaviour
         {
             if (miFicha == fichaO)
             {
-                Debug.Log("HOLA PUTA");
+                //Debug.Log("HOLA PUTA");
                 ficha.meshRenderer.material = ficha.matTeamO;
                 ficha.teamFicha = Ficha.TeamFicha.O;
             }
             else if (miFicha == fichaX)
             {
-                Debug.Log("HOLA PUTA");
+                //Debug.Log("HOLA PUTA");
                 ficha.meshRenderer.material = ficha.matTeamX;
                 ficha.teamFicha = Ficha.TeamFicha.X;
             }
@@ -94,11 +99,15 @@ public class LogicaJugador : MonoBehaviour
         miFicha = fichaX;
         ficha.MyGameObject = miFicha;
         ficha.teamFicha = Ficha.TeamFicha.X;
+        dataPlayer.team = (int)Ficha.TeamFicha.X;
+        //dataPlayer.SetDisplayPlayer();
     }
     public void SeleccionarFichaO()
     {
         miFicha = fichaO;
         ficha.MyGameObject = miFicha;
         ficha.teamFicha = Ficha.TeamFicha.O;
+        dataPlayer.team = (int)Ficha.TeamFicha.O;
+        //dataPlayer.SetDisplayPlayer();
     }
 }

@@ -15,8 +15,8 @@ public class Ficha : MonoBehaviour
     public MeshRenderer meshRenderer { set; get; }
     public enum TeamFicha
     {
-        X,
-        O
+        O = 1,
+        X = 2,
     }
     void Start()
     {

@@ -4,7 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
-using System;
+
+
 public class GestorDePhoton : MonoBehaviourPunCallbacks
 {
     public string NamePlayer;
@@ -12,6 +13,7 @@ public class GestorDePhoton : MonoBehaviourPunCallbacks
     public GameObject Camvas;
     public Button CicruloButton;
     public Button EquisButton;
+
     //public bool isConnectedRoom { set; get; }
 
 
@@ -32,6 +34,8 @@ public class GestorDePhoton : MonoBehaviourPunCallbacks
     void Start()
     {
         //Conecta el cliente con los settings actuales de photon
+        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.SerializationRate = 30;
         PhotonNetwork.ConnectUsingSettings();
         Camvas.SetActive(false);
         //isConnectedRoom = false;
@@ -54,12 +58,12 @@ public class GestorDePhoton : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         //instancia al jugador buscando el archivo "jugador" en la carpeta de resource
+        Camvas.SetActive(true);
         GameObject go = PhotonNetwork.Instantiate(NamePlayer, transform.position, Quaternion.identity);
         LogicaJugador logicaJugador = go.GetComponent<LogicaJugador>();
         myPlayer = logicaJugador;
         CicruloButton.onClick.AddListener(logicaJugador.SeleccionarFichaO);
         EquisButton.onClick.AddListener(logicaJugador.SeleccionarFichaX);
-        Camvas.SetActive(true);
         //isConnectedRoom = true;
     }
 }

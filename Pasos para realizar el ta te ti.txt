@@ -1,0 +1,9 @@
+Cada jugador tendra un identificador de jugador que se asignara a medida vayan entrando a la sala.
+Debe haber un script que guarde la informacion personal de los jugadores en la sala.
+El juego mostrara los datos de los dos jugadores, del contrincante y el nuestro.
+Se selecciona que jugador ira primero.
+una vez la sala esta llena comienza el juego.
+Cada vez que el jugador realiza una jugada valida cambia el turno.
+En cada iteracion el programa debe chekear si alguno de los dos players gano la partida.
+En caso de haber terminado la partida se debe informar del resultado.
+Se pregunta si quieren volver a jugar, volver al menu o buscar otra partida.
