@@ -111,7 +111,16 @@ namespace Server
             m_writer.Write(y);
             return m_buffer;
         }
-
+        public byte[] Serialize(byte code, uint playerId, int ID_RoomConnect, uint ID_InRoom)
+        {
+            const int bufSize = sizeof(byte) + sizeof(int) * 3;
+            InitWriter(bufSize);
+            m_writer.Write(code);
+            m_writer.Write(playerId);
+            m_writer.Write(ID_RoomConnect);
+            m_writer.Write(ID_InRoom);
+            return m_buffer;
+        }
         public void Deserialize(byte[] buf, out byte code, out int value)
         {
             InitReader(buf);

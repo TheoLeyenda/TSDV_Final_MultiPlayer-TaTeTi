@@ -29,6 +29,7 @@ namespace Server
     public class Program
     {
         public const int NADA_NUEVO = -1;
+        public const int ID_ROOM_INVALIDO = -1;
         public const int JUGAR_POSICION_0_DEL_TABLERO = 0;
         public const int JUGAR_POSICION_1_DEL_TABLERO = 1;
         public const int JUGAR_POSICION_2_DEL_TABLERO = 2;
@@ -56,7 +57,6 @@ namespace Server
             public int input;
             public bool isMyTurn;
             public bool inputOK;
-            public string myToken;
 
             public Client(uint iD, int iD_RoomConnect, uint iD_InRoom, string alias, int input, bool isMyTurn, bool inputOK)
             {
@@ -173,6 +173,8 @@ namespace Server
             DataWaitReadyRoomEvent = 16,
             DataTurnRequest = 17,
             DataTurnEvent = 18,
+            DisconnectRoomRequest = 19,
+            DisconnectRoomEvent = 20,
         }
 
         static void HandlePacket(ref Event netEvent)
@@ -241,22 +243,58 @@ namespace Server
                 bool _readyOtherPlayer;
                 int _countPlayersConnected;
 
-                for (int i = 0; i < _rooms[ID_RoomConnect].clientsInRoom.Count; i++)
+                if (ID_RoomConnect > -1 && ID_RoomConnect < _rooms.Count)
                 {
-                    Console.WriteLine(_rooms[ID_RoomConnect].clientsInRoom[i].client.ID + " = " + playerId);
-                    if (_rooms[ID_RoomConnect].clientsInRoom[i].client.ID == playerId)
+                    Console.WriteLine("clientsInRoom: " + _rooms[ID_RoomConnect].clientsInRoom.Count);
+                    for (int i = 0; i < _rooms[ID_RoomConnect].clientsInRoom.Count; i++)
                     {
-                        _rooms[ID_RoomConnect].clientsInRoom[i].isReady = readyMyPlayer;
-                        _rooms[ID_RoomConnect].clientsInRoom[i].client.alias = myAlias;
+                        Console.WriteLine(_rooms[ID_RoomConnect].clientsInRoom[i].client.ID + " = " + playerId);
+                        if (_rooms[ID_RoomConnect].clientsInRoom[i].client.ID == playerId)
+                        {
+                            _rooms[ID_RoomConnect].clientsInRoom[i].isReady = readyMyPlayer;
+                            _rooms[ID_RoomConnect].clientsInRoom[i].client.alias = myAlias;
+                        }
+                        else
+                        {
+                            _aliasOtherPlayer = _rooms[ID_RoomConnect].clientsInRoom[i].client.alias;
+                            _readyOtherPlayer = _rooms[ID_RoomConnect].clientsInRoom[i].isReady;
+                            _countPlayersConnected = _rooms[ID_RoomConnect].countClient;
+                            var ID = _rooms[ID_RoomConnect].clientsInRoom[i].client.ID;
+                            BroadcastDataWaitReadyRoomEvent(playerId, readyMyPlayer, myAlias, _countPlayersConnected, ID_RoomConnect);
+                            BroadcastDataWaitReadyRoomEvent(ID, _readyOtherPlayer, _aliasOtherPlayer, _countPlayersConnected, ID_RoomConnect);
+                        }
                     }
-                    else
+                }
+            }
+            else if (packetId == PacketId.DisconnectRoomRequest)
+            {
+                var playerId = reader.ReadUInt32();
+                var ID_RoomConnect = reader.ReadInt32();
+                var ID_InRoom = reader.ReadUInt32();
+
+                var auxID_RoomConnect = ID_RoomConnect;
+                var auxID_InRoom = ID_InRoom;
+
+                if (ID_RoomConnect > -1 && ID_RoomConnect < _rooms.Count)
+                {
+                    if (ID_InRoom < _rooms[ID_RoomConnect].clientsInRoom.Count)
                     {
-                        _aliasOtherPlayer = _rooms[ID_RoomConnect].clientsInRoom[i].client.alias;
-                        _readyOtherPlayer = _rooms[ID_RoomConnect].clientsInRoom[i].isReady;
-                        _countPlayersConnected = _rooms[ID_RoomConnect].countClient;
-                        var ID = _rooms[ID_RoomConnect].clientsInRoom[i].client.ID;
-                        BroadcastDataWaitReadyRoomEvent(playerId, readyMyPlayer, myAlias, _countPlayersConnected, ID_RoomConnect);
-                        BroadcastDataWaitReadyRoomEvent(ID, _readyOtherPlayer, _aliasOtherPlayer, _countPlayersConnected, ID_RoomConnect);
+                        _rooms[ID_RoomConnect].DisconnectClient((int)ID_InRoom);
+
+                        ID_RoomConnect = ID_ROOM_INVALIDO;
+                        ID_InRoom = maxClientPerRoom + 1;
+                        //Hacer la nueva data.
+                        BroadcastDisconnectRoomEvent(playerId, ID_RoomConnect, ID_InRoom);
+
+                        if (_rooms[auxID_RoomConnect].clientsInRoom.Count > 0)
+                        {
+                            for (int i = 0; i < _rooms[auxID_RoomConnect].clientsInRoom.Count; i++)
+                            {
+                                var ID_OtherClient = _rooms[auxID_RoomConnect].clientsInRoom[i].client.ID;
+                                auxID_InRoom = (uint)i;
+                                BroadcastDisconnectRoomEvent(ID_OtherClient, auxID_RoomConnect, auxID_InRoom);
+                            }
+                        }
                     }
                 }
             }
@@ -266,10 +304,16 @@ namespace Server
                 var ID_RoomConnect = reader.ReadInt32();
                 var ID_InRoom = reader.ReadUInt32();
 
-                Console.WriteLine(ID_InRoom + "=" + _rooms[ID_RoomConnect].TaTeTiGame.GetID_Turn());
-                bool isMyTurn = (ID_InRoom == _rooms[ID_RoomConnect].TaTeTiGame.GetID_Turn());
+                if (ID_RoomConnect > -1 && ID_RoomConnect < _rooms.Count)
+                {
+                    if (ID_InRoom < _rooms[ID_RoomConnect].clientsInRoom.Count)
+                    {
+                        Console.WriteLine(ID_InRoom + "=" + _rooms[ID_RoomConnect].TaTeTiGame.GetID_Turn());
+                        bool isMyTurn = (ID_InRoom == _rooms[ID_RoomConnect].TaTeTiGame.GetID_Turn());
 
-                BroadcastDataTurnEvent(playerId, isMyTurn);
+                        BroadcastDataTurnEvent(playerId, isMyTurn);
+                    }
+                }
             }
             else if (packetId == PacketId.InputUpdateRequest)
             {
@@ -298,38 +342,41 @@ namespace Server
                 {
                     input = INPUT_INVALIDO;
                 }
-                else if (ID_RoomConnect > -1 && input != CONECTAR_A_LA_ROOM)
+                else if (ID_RoomConnect > -1 && ID_RoomConnect < _rooms.Count && input != CONECTAR_A_LA_ROOM)
                 {
-                    _rooms[(int)ID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.input = input;
-
-                    _rooms[(int)ID_RoomConnect].UpdateRoom();
-
-                    bool inputJugada = (input >= JUGAR_POSICION_0_DEL_TABLERO && input <= JUGAR_POSICION_8_DEL_TABLERO);
-                    var auxInput = input;
-
-                    input = _rooms[(int)ID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.input;
-
-                    if (inputJugada && input == INPUT_VALIDO)
+                    if (ID_InRoom < _rooms[ID_RoomConnect].clientsInRoom.Count)
                     {
-                        for (int i = 0; i < _rooms[(int)ID_RoomConnect].clientsInRoom.Count; i++)
+                        _rooms[(int)ID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.input = input;
+
+                        _rooms[(int)ID_RoomConnect].UpdateRoom();
+
+                        bool inputJugada = (input >= JUGAR_POSICION_0_DEL_TABLERO && input <= JUGAR_POSICION_8_DEL_TABLERO);
+                        var auxInput = input;
+
+                        input = _rooms[(int)ID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.input;
+
+                        if (inputJugada && input == INPUT_VALIDO)
                         {
-                            var currentID = _rooms[(int)ID_RoomConnect].clientsInRoom[i].client.ID_InRoom;
-                            Client currentClient = _rooms[(int)ID_RoomConnect].clientsInRoom[i].client;
+                            for (int i = 0; i < _rooms[(int)ID_RoomConnect].clientsInRoom.Count; i++)
+                            {
+                                var currentID = _rooms[(int)ID_RoomConnect].clientsInRoom[i].client.ID_InRoom;
+                                Client currentClient = _rooms[(int)ID_RoomConnect].clientsInRoom[i].client;
 
-                            if (currentID == _rooms[(int)ID_RoomConnect].TaTeTiGame.GetID_Turn())
-                            {
-                                Console.WriteLine("ENTRE AL TURNO 1");
-                                isMyTurn = true;
-                            }
-                            else
-                            {
-                                Console.WriteLine("ENTRE AL TURNO 2");
-                                isMyTurn = false;
-                            }
+                                if (currentID == _rooms[(int)ID_RoomConnect].TaTeTiGame.GetID_Turn())
+                                {
+                                    Console.WriteLine("ENTRE AL TURNO 1");
+                                    isMyTurn = true;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("ENTRE AL TURNO 2");
+                                    isMyTurn = false;
+                                }
 
-                            if (currentClient.ID != playerID)
-                            {
-                                BroadcastInputUpdateEvent(currentClient.ID, currentClient.ID, ID_RoomConnect, ID_InRoom, alias, auxInput, isMyTurn, inputOK);
+                                if (currentClient.ID != playerID)
+                                {
+                                    BroadcastInputUpdateEvent(currentClient.ID, currentClient.ID, ID_RoomConnect, ID_InRoom, alias, auxInput, isMyTurn, inputOK);
+                                }
                             }
                         }
                     }
@@ -379,6 +426,15 @@ namespace Server
         {
             var protocol = new Protocol();
             var buffer = protocol.Serialize((byte)PacketId.LogoutEvent, playerId);
+            var packet = default(Packet);
+            packet.Create(buffer);
+            _server.Broadcast(0, ref packet);
+        }
+
+        static void BroadcastDisconnectRoomEvent(uint playerId, int ID_RoomConnect, uint ID_InRoom)
+        {
+            var protocol = new Protocol();
+            var buffer = protocol.Serialize((byte)PacketId.DisconnectRoomEvent, playerId, ID_RoomConnect, ID_InRoom);
             var packet = default(Packet);
             packet.Create(buffer);
             _server.Broadcast(0, ref packet);

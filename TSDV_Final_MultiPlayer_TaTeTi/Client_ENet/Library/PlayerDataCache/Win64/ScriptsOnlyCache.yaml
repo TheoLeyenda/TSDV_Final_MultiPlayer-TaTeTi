@@ -714,4 +714,4 @@ ScriptsOnlyBuild:
   - Assets/Scene/TaTeTi/MainMenu.unity
   - Assets/Scene/TaTeTi/Online.unity
   - Assets/Scene/TaTeTi/Local.unity
-  playerPath: C:/Users/Theo Leyenda/Desktop/TSDV_Final_MultiPlayer_TaTeTi/Client_ENet/Build_Client/CircleENet.exe
+  playerPath: C:/Users/Theo Leyenda/Desktop/TSDV_Final_MultiPlayer-TaTeTi/TSDV_Final_MultiPlayer_TaTeTi/Client_ENet/Build_Client/CircleENet.exe

@@ -13,6 +13,7 @@ using Random = UnityEngine.Random;
 public class SceneManager : MonoBehaviour
 {
     public const int NADA_NUEVO = -1;
+    public const int ID_ROOM_INVALIDO = -1;
     public const int JUGAR_POSICION_0_DEL_TABLERO = 0;
     public const int JUGAR_POSICION_1_DEL_TABLERO = 1;
     public const int JUGAR_POSICION_2_DEL_TABLERO = 2;
@@ -39,7 +40,6 @@ public class SceneManager : MonoBehaviour
         public int input;
         public bool isMyTurn;
         public bool inputOK;
-        public string myToken;
 
         public Client(uint iD, int iD_RoomConnect, uint iD_InRoom, string alias, int input, bool isMyTurn, bool inputOK)
         {
@@ -305,6 +305,8 @@ public class SceneManager : MonoBehaviour
         DataWaitReadyRoomEvent = 16,
         DataTurnRequest = 17,
         DataTurnEvent = 18,
+        DisconnectRoomRequest = 19,
+        DisconnectRoomEvent = 20,
     }
     public void SendTestMensagge()
     {
@@ -432,6 +434,14 @@ public class SceneManager : MonoBehaviour
     {
         var protocol = new Protocol();
         var buffer = protocol.Serialize((byte)PacketId.DataWaitReadyRoomRequest, _myPlayerId, _myClient.ID_RoomConnect, readyForPlaying_myPlayer, _myClient.alias);
+        var packet = default(Packet);
+        packet.Create(buffer);
+        _peer.Send(channelID, ref packet);
+    }
+    public void SendDisconnectRoomRequest()
+    {
+        var protocol = new Protocol();
+        var buffer = protocol.Serialize((byte)PacketId.DisconnectRoomRequest, _myPlayerId, _myClient.ID_RoomConnect, _myClient.ID_InRoom);
         var packet = default(Packet);
         packet.Create(buffer);
         _peer.Send(channelID, ref packet);
@@ -577,7 +587,7 @@ public class SceneManager : MonoBehaviour
             var otherPlayerAlias = reader.ReadString();
             var countPlayersInRoom = reader.ReadInt32();
             var ID_RoomConecteed = reader.ReadInt32();
-            if (_myPlayerId != playerID && ID_RoomConecteed == _myClient.ID_RoomConnect)
+            if (_myPlayerId != playerID && ID_RoomConecteed == _myClient.ID_RoomConnect && ID_RoomConecteed != ID_ROOM_INVALIDO)
             {
                 if (otherPlayerReady)
                     readyImage_OtherPlayer.color = colorReady;
@@ -588,6 +598,32 @@ public class SceneManager : MonoBehaviour
                 aliasOtherPlayer_text.text = otherPlayerAlias;
                 readyForPlaying_otherPlayer = otherPlayerReady;
                 playersConnected_text.text = "Jugadores conectados: " + countPlayersInRoom + "/2";
+            }
+        }
+        else if (packetId == PacketId.DisconnectRoomEvent)
+        {
+            var playerId = reader.ReadUInt32();
+            var ID_RoomConnect = reader.ReadInt32();
+            var ID_InRoom = reader.ReadUInt32();
+
+            if (playerId == _myClient.ID)
+            {
+                //if (ID_RoomConnect == ID_ROOM_INVALIDO)
+                //{
+                    _myClient.ID_RoomConnect = ID_RoomConnect;
+                    _myClient.ID_InRoom = ID_InRoom;
+                    currentOtherPlayerAlias = "Falta Jugador...";
+                    nameOtherPlayer.text = "Falta Jugador...";
+                    aliasOtherPlayer_text.text = "Falta Jugador...";
+                //}
+                //else
+                //{
+                //    _myClient.ID_RoomConnect = ID_RoomConnect;
+                //    _myClient.ID_InRoom = ID_InRoom;
+                //    currentOtherPlayerAlias = "Falta Jugador...";
+                //    nameOtherPlayer.text = "Falta Jugador...";
+                //    aliasOtherPlayer_text.text = "Falta Jugador...";
+                //}
             }
         }
         else if (packetId == PacketId.DataTurnEvent)

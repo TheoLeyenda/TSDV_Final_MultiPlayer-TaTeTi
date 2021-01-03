@@ -222,7 +222,7 @@ namespace Server
         }
         public void DisconnectClient(int ID_InRoom)
         {
-            if (countClient > 0)
+            if (clientsInRoom.Count > 0)
             {
                 clientsInRoom.Remove(clientsInRoom[ID_InRoom]);
                 countClient--;
