@@ -141,6 +141,7 @@ public class SceneManager : MonoBehaviour
 
     private int myScore;
     private int enemyScore;
+    private bool cancelParty = false;
 
     private bool gameOver = false;
     private string result = "None";
@@ -193,6 +194,7 @@ public class SceneManager : MonoBehaviour
             {
                 delayStartParty_text.gameObject.SetActive(true);
                 delayStartParty_text.text = "La Partida Empieza en " + (int)delayStartParty;
+                
                 if (delayStartParty >= 1f)
                 {
                     delayStartParty = delayStartParty - Time.deltaTime;
@@ -610,11 +612,19 @@ public class SceneManager : MonoBehaviour
             {
                 //if (ID_RoomConnect == ID_ROOM_INVALIDO)
                 //{
-                    _myClient.ID_RoomConnect = ID_RoomConnect;
-                    _myClient.ID_InRoom = ID_InRoom;
-                    currentOtherPlayerAlias = "Falta Jugador...";
-                    nameOtherPlayer.text = "Falta Jugador...";
-                    aliasOtherPlayer_text.text = "Falta Jugador...";
+                _myClient.ID_RoomConnect = ID_RoomConnect;
+                _myClient.ID_InRoom = ID_InRoom;
+                currentOtherPlayerAlias = "Falta Jugador...";
+                nameOtherPlayer.text = "Falta Jugador...";
+                aliasOtherPlayer_text.text = "Falta Jugador...";
+                delayStartParty = auxDelayStartParty;
+                delayStartParty_text.gameObject.SetActive(false);
+                readyForPlaying_myPlayer = false;
+                readyForPlaying_otherPlayer = false;
+                readyImage_MyPlayer.color = colorNotReady;
+                readyImage_OtherPlayer.color = colorNotReady;
+                playersConnected_text.text = "Jugadores conectados: 1/2";
+                buttonReady.interactable = true;
                 //}
                 //else
                 //{
