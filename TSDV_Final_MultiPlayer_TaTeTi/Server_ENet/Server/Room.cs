@@ -165,6 +165,7 @@ namespace Server
             //11 = INPUT QUE INFORMA AL JUGADOR QUE GANO LA PARTIDA.
             //12 = INPUT QUE INFORMA AL JUGADOR QUE PERDIO LA PARTIDA.
             //13 = INPUT QUE INFORMA AL JUGADOR QUE EMPATO LA PARTIDA.
+            Console.WriteLine("End Game");
             for (int i = 0; i < clientsInRoom.Count; i++)
             {
                 switch (TaTeTiGame.players[i].result)
@@ -183,6 +184,7 @@ namespace Server
                         break;
                 }
                 clientsInRoom[i].isReady = false;
+                Console.WriteLine("Eniado el mensaje...");
                 Program.BroadcastInputUpdateEvent(clientsInRoom[i].client.ID, clientsInRoom[i].client.ID,
                                                 clientsInRoom[i].client.ID_RoomConnect, clientsInRoom[i].client.ID_InRoom,
                                                 clientsInRoom[i].client.alias, clientsInRoom[i].client.input,
@@ -224,6 +226,9 @@ namespace Server
         {
             if (clientsInRoom.Count > 0)
             {
+                if(clientsInRoom.Count >= maxClient)
+                    TaTeTiGame.WinByDefault(ID_InRoom);
+
                 clientsInRoom.Remove(clientsInRoom[ID_InRoom]);
                 countClient--;
             }

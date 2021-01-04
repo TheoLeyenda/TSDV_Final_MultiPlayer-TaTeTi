@@ -196,19 +196,8 @@ namespace Server
         }
         public void WinByDefault(int id_LosePlayer)
         {
-            switch (id_LosePlayer)
-            {
-                case 0:
-                    players[1].result = ResultGame.WinPlayer;
-                    //players[1].scorePlayer++;
-                    break;
-                case 1:
-                    players[0].result = ResultGame.WinPlayer;
-                    //players[0].scorePlayer++;
-                    break;
-            }
+            players[0].result = ResultGame.WinPlayer;
             gameState = GameState.FinishGame;
-            ResetDataPlayer(id_LosePlayer);
         }
         public void InitTurn()
         {
