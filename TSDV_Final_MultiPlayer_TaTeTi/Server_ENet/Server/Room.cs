@@ -193,7 +193,7 @@ namespace Server
 
             TaTeTiGame.DestroyGame();
             stateRoom = StateRoom.WaitingStart;
-
+            TaTeTiGame.ResetTable();
         }
         public void UpdateRoom()
         {
@@ -226,12 +226,10 @@ namespace Server
         {
             if (clientsInRoom.Count > 0)
             {
-                if(clientsInRoom.Count >= maxClient)
-                    TaTeTiGame.WinByDefault(ID_InRoom);
-
                 clientsInRoom.Remove(clientsInRoom[ID_InRoom]);
                 countClient--;
             }
+            TaTeTiGame.ResetTable();
             TaTeTiGame.ResetDataPlayer(ID_InRoom);
         }
 

@@ -31,6 +31,7 @@ public class SceneManager : MonoBehaviour
     public const int INPUT_VALIDO = 14;
     public const int INPUT_INVALIDO = 15;
     public const int CONECTAR_A_LA_ROOM = 16;
+    public const int UPDATE_DATA_DISCONNECT = 17;
     public class Client
     {
         public uint ID;
@@ -144,6 +145,8 @@ public class SceneManager : MonoBehaviour
     private bool cancelParty = false;
 
     private bool gameOver = false;
+    private int countPlayersInRoom = 0;
+
     private string result = "None";
     void Start ()
     {
@@ -189,6 +192,7 @@ public class SceneManager : MonoBehaviour
             {
                 delayRequestDataCanvasWaitReadyRoom = auxDelayRequestDataCanvasWaitReadyRoom;
                 SendDataWaitReadyRoomRequest();
+                
             }
             if (readyForPlaying_myPlayer && readyForPlaying_otherPlayer)
             {
@@ -371,6 +375,20 @@ public class SceneManager : MonoBehaviour
         switch (numberCanvas)
         {
             case 1:
+                result = "None";
+                currentOtherPlayerAlias = "Falta Jugador...";
+                nameOtherPlayer.text = "Falta Jugador...";
+                aliasOtherPlayer_text.text = "Falta Jugador...";
+                playersConnected_text.text = "Jugadores conectados: 1/2";
+                delayStartParty = auxDelayStartParty;
+                delayStartParty_text.gameObject.SetActive(false);
+                readyForPlaying_myPlayer = false;
+                readyForPlaying_otherPlayer = false;
+                readyImage_MyPlayer.color = colorNotReady;
+                readyImage_OtherPlayer.color = colorNotReady;
+                buttonReady.interactable = true;
+                SendDataWaitReadyRoomRequest();
+
                 delayRequestDataCanvasLobby = 0.05f;
                 canvasLoby.SetActive(true);
                 canvasChargeRoom.SetActive(false);
@@ -407,17 +425,20 @@ public class SceneManager : MonoBehaviour
                 canvasWaitReadyRoom.SetActive(true);
                 canvasSelectToken.SetActive(false);
                 canvasRoom.SetActive(false);
+                SendDataTurnRequest();
                 break;
             case 4:
+                result = "None";
+                buttonContinue.gameObject.SetActive(false);
                 delayStartParty_text.gameObject.SetActive(false);
                 nameTurn_text.gameObject.SetActive(false);
-                SendDataTurnRequest();
                 delayRequestDataCanvasLobby = 0.05f;
                 canvasLoby.SetActive(false);
                 canvasChargeRoom.SetActive(false);
                 canvasWaitReadyRoom.SetActive(false);
                 canvasSelectToken.SetActive(true);
                 canvasRoom.SetActive(false);
+                SendDataTurnRequest();
                 break;
             case 5:
                 nameMyPlayer.text = _myClient.alias;
@@ -587,7 +608,7 @@ public class SceneManager : MonoBehaviour
             var playerID = reader.ReadUInt32();
             var otherPlayerReady = reader.ReadBoolean();
             var otherPlayerAlias = reader.ReadString();
-            var countPlayersInRoom = reader.ReadInt32();
+            countPlayersInRoom = reader.ReadInt32();
             var ID_RoomConecteed = reader.ReadInt32();
             if (_myPlayerId != playerID && ID_RoomConecteed == _myClient.ID_RoomConnect && ID_RoomConecteed != ID_ROOM_INVALIDO)
             {
@@ -597,7 +618,12 @@ public class SceneManager : MonoBehaviour
                     readyImage_OtherPlayer.color = colorNotReady;
 
                 currentOtherPlayerAlias = otherPlayerAlias;
-                aliasOtherPlayer_text.text = otherPlayerAlias;
+
+                if(countPlayersInRoom <= 1)
+                    aliasOtherPlayer_text.text = "Falta Jugador...";
+                else
+                    aliasOtherPlayer_text.text = otherPlayerAlias;
+
                 readyForPlaying_otherPlayer = otherPlayerReady;
                 playersConnected_text.text = "Jugadores conectados: " + countPlayersInRoom + "/2";
             }
@@ -610,30 +636,7 @@ public class SceneManager : MonoBehaviour
 
             if (playerId == _myClient.ID)
             {
-                //if (ID_RoomConnect == ID_ROOM_INVALIDO)
-                //{
-                _myClient.ID_RoomConnect = ID_RoomConnect;
-                _myClient.ID_InRoom = ID_InRoom;
-                currentOtherPlayerAlias = "Falta Jugador...";
-                nameOtherPlayer.text = "Falta Jugador...";
-                aliasOtherPlayer_text.text = "Falta Jugador...";
-                delayStartParty = auxDelayStartParty;
-                delayStartParty_text.gameObject.SetActive(false);
-                readyForPlaying_myPlayer = false;
-                readyForPlaying_otherPlayer = false;
-                readyImage_MyPlayer.color = colorNotReady;
-                readyImage_OtherPlayer.color = colorNotReady;
-                playersConnected_text.text = "Jugadores conectados: 1/2";
-                buttonReady.interactable = true;
-                //}
-                //else
-                //{
-                //    _myClient.ID_RoomConnect = ID_RoomConnect;
-                //    _myClient.ID_InRoom = ID_InRoom;
-                //    currentOtherPlayerAlias = "Falta Jugador...";
-                //    nameOtherPlayer.text = "Falta Jugador...";
-                //    aliasOtherPlayer_text.text = "Falta Jugador...";
-                //}
+                ClearDataDisconnect(ID_RoomConnect, ID_InRoom);
             }
         }
         else if (packetId == PacketId.DataTurnEvent)
@@ -658,6 +661,19 @@ public class SceneManager : MonoBehaviour
             var isMyTurn = reader.ReadBoolean();
             var inputOK = reader.ReadBoolean();
 
+            if(playerID == _myClient.ID && UPDATE_DATA_DISCONNECT == input)
+            {
+                _myClient.ID_InRoom = ID_InRoom;
+                ClearDataDisconnect(ID_RoomConnect, ID_InRoom);
+                _myClient.input = NADA_NUEVO;
+                result = "GANASTE :D";
+                nameTurn_text.text = result;
+                gameOver = true;
+                buttonContinue.gameObject.SetActive(true);
+                readyForPlaying_myPlayer = false;
+                readyForPlaying_otherPlayer = false;
+                SendDataWaitReadyRoomRequest();
+            }
             if (_myClient.input == CONECTAR_A_LA_ROOM && input == INPUT_VALIDO && playerID == _myClient.ID)
             {
                 SendDataRoomRequest();
@@ -679,6 +695,9 @@ public class SceneManager : MonoBehaviour
                     Debug.Log("TERMINO PARTIDA");
                     gameOver = true;
                     buttonContinue.gameObject.SetActive(true);
+                    readyForPlaying_myPlayer = false;
+                    readyForPlaying_otherPlayer = false;
+                    SendDataWaitReadyRoomRequest();
                     switch (input)
                     {
                         case INPUT_EMPATO_PARTIDA:
@@ -836,7 +855,23 @@ public class SceneManager : MonoBehaviour
         }
         
     }
-
+    public void ClearDataDisconnect(int ID_RoomConnect, uint ID_InRoom)
+    {
+        _myClient.ID_RoomConnect = ID_RoomConnect;
+        _myClient.ID_InRoom = ID_InRoom;
+        currentOtherPlayerAlias = "Falta Jugador...";
+        nameOtherPlayer.text = "Falta Jugador...";
+        aliasOtherPlayer_text.text = "Falta Jugador...";
+        delayStartParty = auxDelayStartParty;
+        delayStartParty_text.gameObject.SetActive(false);
+        readyForPlaying_myPlayer = false;
+        readyForPlaying_otherPlayer = false;
+        readyImage_MyPlayer.color = colorNotReady;
+        readyImage_OtherPlayer.color = colorNotReady;
+        playersConnected_text.text = "Jugadores conectados: 1/2";
+        buttonReady.interactable = true;
+        ResetScore();
+    }
     public void ClearTable()
     {
         GameObject[] tokens = GameObject.FindGameObjectsWithTag("Ficha");

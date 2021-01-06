@@ -47,6 +47,7 @@ namespace Server
         public const int INPUT_VALIDO = 14;
         public const int INPUT_INVALIDO = 15;
         public const int CONECTAR_A_LA_ROOM = 16;
+        public const int UPDATE_DATA_DISCONNECT = 17;
 
         public class Client
         {
@@ -279,11 +280,23 @@ namespace Server
                 {
                     if (ID_InRoom < _rooms[ID_RoomConnect].clientsInRoom.Count)
                     {
+
+                        var ID_MyClient = _rooms[ID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.ID;
+                        _rooms[ID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.ID_InRoom = ID_InRoom;
+                        BroadcastDisconnectRoomEvent(ID_MyClient, ID_RoomConnect, ID_InRoom);
+
+                        var alias_MyClient = _rooms[auxID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.alias;
+                        var isMyTurn_MyClient = _rooms[auxID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.isMyTurn;
+                        var inputOK_MyClient = _rooms[auxID_RoomConnect].clientsInRoom[(int)ID_InRoom].client.inputOK;
+                        BroadcastInputUpdateEvent(ID_MyClient, ID_MyClient, ID_RoomConnect,
+                            ID_InRoom, alias_MyClient, UPDATE_DATA_DISCONNECT, isMyTurn_MyClient, inputOK_MyClient);
+
                         _rooms[ID_RoomConnect].DisconnectClient((int)ID_InRoom);
 
                         ID_RoomConnect = ID_ROOM_INVALIDO;
                         ID_InRoom = maxClientPerRoom + 1;
                         //Hacer la nueva data.
+
                         BroadcastDisconnectRoomEvent(playerId, ID_RoomConnect, ID_InRoom);
 
                         if (_rooms[auxID_RoomConnect].clientsInRoom.Count > 0)
@@ -291,8 +304,15 @@ namespace Server
                             for (int i = 0; i < _rooms[auxID_RoomConnect].clientsInRoom.Count; i++)
                             {
                                 var ID_OtherClient = _rooms[auxID_RoomConnect].clientsInRoom[i].client.ID;
+                                _rooms[auxID_RoomConnect].clientsInRoom[i].client.ID_InRoom = (uint)i;
                                 auxID_InRoom = (uint)i;
                                 BroadcastDisconnectRoomEvent(ID_OtherClient, auxID_RoomConnect, auxID_InRoom);
+
+                                var alias = _rooms[auxID_RoomConnect].clientsInRoom[i].client.alias;
+                                var isMyTurn = _rooms[auxID_RoomConnect].clientsInRoom[i].client.isMyTurn;
+                                var inputOK = _rooms[auxID_RoomConnect].clientsInRoom[i].client.inputOK;
+                                BroadcastInputUpdateEvent(ID_OtherClient, ID_OtherClient, auxID_RoomConnect,
+                                    auxID_InRoom, alias, UPDATE_DATA_DISCONNECT, isMyTurn, inputOK);
                             }
                         }
                     }
@@ -431,7 +451,7 @@ namespace Server
             _server.Broadcast(0, ref packet);
         }
 
-        static void BroadcastDisconnectRoomEvent(uint playerId, int ID_RoomConnect, uint ID_InRoom)
+        public static void BroadcastDisconnectRoomEvent(uint playerId, int ID_RoomConnect, uint ID_InRoom)
         {
             var protocol = new Protocol();
             var buffer = protocol.Serialize((byte)PacketId.DisconnectRoomEvent, playerId, ID_RoomConnect, ID_InRoom);
