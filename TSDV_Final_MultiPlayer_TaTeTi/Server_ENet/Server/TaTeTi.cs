@@ -204,7 +204,7 @@ namespace Server
             Random random = new Random();
             int aux = random.Next(100); // devuelve un numero entre el 0 y el 1, Si no funciona poner en vez de 1, el 2 en los parametros.
             if (aux > 50)
-                ID_Turn = 0;
+                ID_Turn = 0; //LUEGO DE CORREGIR LOS BUGS DEL TURNO (NO APARECE EL NOMBRE DE QUIEN ES EL TURNO) PONER EN 0
             else if (aux <= 50)
                 ID_Turn = 1;
         }

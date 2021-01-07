@@ -8,4 +8,12 @@ public class ScreenManager : MonoBehaviour
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(name);
     }
+    public void Exit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        Application.Quit();
+    }
+    
 }

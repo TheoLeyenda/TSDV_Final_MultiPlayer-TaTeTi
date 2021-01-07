@@ -57,6 +57,7 @@
   <ItemGroup>
      <Compile Include="Assets\Blue Cartoon UI\Demo_Assets\scripts\GUI_Demo.cs" />
      <Compile Include="Assets\Scripts\ENet.cs" />
+     <Compile Include="Assets\Scripts\InputFiled_Event.cs" />
      <Compile Include="Assets\Scripts\PlayerController.cs" />
      <Compile Include="Assets\Scripts\PlayerData.cs" />
      <Compile Include="Assets\Scripts\Protocol.cs" />

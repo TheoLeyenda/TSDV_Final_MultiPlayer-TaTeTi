@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scene/TaTeTi/Online.unity
+- path: Assets/Scene/TaTeTi/MainMenu.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

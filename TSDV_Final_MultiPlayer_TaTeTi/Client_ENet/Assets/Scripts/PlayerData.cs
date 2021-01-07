@@ -23,8 +23,21 @@ public class PlayerData : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    void OnDisable()
+    {
+        InputFiled_Event.OnSettingInputField -= SetInputField;
+    }
 
-    public void SetAliasPlayer() => aliasPlayer = inputFieldAlias.text;
+    void OnEnable()
+    {
+        InputFiled_Event.OnSettingInputField += SetInputField;
+    }
+    public void SetInputField(InputFiled_Event inputFiled_Event)
+    {
+        inputFieldAlias = inputFiled_Event.myInputField;
+    }
+
+    public void SetAliasPlayer(string aliasText) => aliasPlayer = inputFieldAlias.text;
 
     public string GetAliasPlayer() { return aliasPlayer; }
 

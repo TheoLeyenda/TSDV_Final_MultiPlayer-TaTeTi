@@ -159,6 +159,7 @@ public class SceneManager : MonoBehaviour
         readyForPlaying_myPlayer = false;
         readyForPlaying_otherPlayer = false;
         myAlias = PlayerData.instancePlayerData.GetAliasPlayer();
+        Debug.Log(myAlias);
     }
 
 	void Update ()

@@ -1,6 +1,7 @@
 ScriptsOnlyBuild:
   usedScripts:
     Assembly-CSharp.dll:
+    - InputFiled_Event
     - PlayerData
     - RotateThis
     - SceneManager
@@ -81,6 +82,8 @@ ScriptsOnlyBuild:
       Script: {instanceID: 11064}
     - Class: 114
       Script: {instanceID: 11404}
+    - Class: 114
+      Script: {instanceID: 39908}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -132,6 +135,8 @@ ScriptsOnlyBuild:
       Script: {instanceID: 10842}
     - Class: 114
       Script: {instanceID: 11060}
+    - Class: 114
+      Script: {instanceID: 11064}
     - Class: 114
       Script: {instanceID: 11404}
     - Class: 115
@@ -709,6 +714,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: PlayableTrack
+  - hash:
+      serializedVersion: 2
+      Hash: ec70ab0f9f73c7b60e551659e187adb3
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: InputFiled_Event
   platform: 19
   scenePathNames:
   - Assets/Scene/TaTeTi/MainMenu.unity
